@@ -1,0 +1,53 @@
+#composefileの指定
+version: "3.8"
+#サービス(=コンテナ)
+services:
+  db:
+# ベースイメージを定義
+    image: postgres:13.1-alpine
+# 環境変数を定義
+    environment:
+#OSのタイムゾーン
+      TZ: UTC
+# Postgresのタイムゾーン
+      PGTZ: UTC
+# データベースのパスワード
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+# ホスト側のディレクトリをコンテナで使用する
+    volumes:
+      - "./api/tmp/db:/var/lib/postgresql/data"
+
+  api:
+    build:
+#オプションキーを使う場合は、contextをかます
+      context: ./api
+      args:
+        WORKDIR: $WORKDIR
+    environment:
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      API_DOMAIN: "localhost:$FRONT_PORT" 
+    volumes:
+      - ./api:/$WORKDIR
+# サービスの依存関係を定義（起動の順番）
+    depends_on:
+      - db
+# 公開したいポート番号:コンテナポート railの公開デフォルトポート番号は3000番
+    ports:
+      - "$API_PORT:3000"
+
+  front:
+    build:
+      context: ./front
+      args:
+        WORKDIR: $WORKDIR
+        CONTAINER_PORT: $CONTAINER_PORT
+        API_URL: "http://localhost:$API_PORT"
+# コンテナで実行したいコマンド（CMD）ここでは、開発段階でのコマンド
+    command: yarn run dev
+    volumes:
+      - "./front:/$WORKDIR"
+    ports:
+      - "$FRONT_PORT:3000"
+# サービスの依存関係を定義
+    depends_on:
+      - api
