@@ -1,6 +1,0 @@
-[submodule "api"]
- path = api
- url = https://github.com/takashiono2/nuxt-rails-test-api.git
-[submodule "font"]
- path = front
- url = https://github.com/takashiono2/nuxt-rails-test-front.git
